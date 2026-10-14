@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NutriFind AI - Nutrition Database & AI Food Vision Scanner</title>
+  <meta name="description" content="Discover verified nutritional facts, calories, macros, and vitamins. Scan food photos with AI vision, track daily meals, and achieve your wellness goals with NutriFind AI.">
+  <meta name="theme-color" content="#10b981">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+  <!-- ================= APP HEADER ================= -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand" onclick="NutriFind.switchTab('search')">
+        <div class="brand-icon">🌱</div>
+        <div class="brand-info">
+          <h1>NutriFind <span>AI</span></h1>
+          <span class="brand-subtitle">USDA Verified & Vision Calibrated</span>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Date Navigator -->
+        <div class="date-navigator" title="Change Tracking Date">
+          <button class="date-btn" id="btn-prev-date" aria-label="Previous Day">‹</button>
+          <span class="current-date-label" id="current-date-display">Today</span>
+          <button class="date-btn" id="btn-next-date" aria-label="Next Day">›</button>
+        </div>
+
+        <!-- Quick Calorie Pill -->
+        <div class="calorie-quick-pill" title="Daily Calorie Status" onclick="NutriFind.switchTab('tracker')" style="cursor: pointer;">
+          <span class="pill-icon">🔥</span>
+          <span id="header-calories-val">0 / 2,000 kcal</span>
+        </div>
+
+        <!-- Quick Water Add -->
+        <button class="btn-icon-action" id="header-water-btn" onclick="NutriFind.handleWaterChange(250)" title="Quick-Add +250ml Water" aria-label="Quick Add Water">
+          💧
+        </button>
+
+        <!-- Settings Cog -->
+        <button class="btn-icon-action" id="btn-open-settings" title="API Keys & Settings" aria-label="Settings">
+          ⚙️
+        </button>
+
+        <!-- User Profile Pill -->
+        <div class="btn-secondary btn-sm" onclick="NutriFind.switchTab('profile')" style="display: flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.65rem; border-radius: var(--radius-full); cursor: pointer;" title="Profile & Goals">
+          <div id="user-avatar-initial" style="width: 24px; height: 24px; border-radius: 50%; background: var(--primary-600); color: white; display: flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 700;">A</div>
+          <span id="user-profile-name" style="font-size: 0.825rem; font-weight: 600;">Alex Morgan</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================= TABS NAVIGATION ================= -->
+  <nav class="tabs-navigation">
+    <div class="tabs-container">
+      <button class="tab-btn active" data-tab="search" id="tab-nav-search">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+        Discover Foods
+      </button>
+
+      <button class="tab-btn" data-tab="vision" id="tab-nav-vision">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
+        AI Food Vision Scanner
+      </button>
+
+      <button class="tab-btn" data-tab="tracker" id="tab-nav-tracker">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 20v-6M6 20V10M18 20V4"></path></svg>
+        Daily Tracker & Meals
+      </button>
+
+      <button class="tab-btn" data-tab="analytics" id="tab-nav-analytics">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        Weekly Analytics
+      </button>
+
+      <button class="tab-btn" data-tab="profile" id="tab-nav-profile">
+        <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4M12 8h.01"></path></svg>
+        Goals & TDEE Calculator
+      </button>
+    </div>
+  </nav>
+
+  <!-- ================= MAIN CONTENT AREA ================= -->
+  <main class="main-content">
+
+    <!-- -------------------------------------------------------------
+         TAB 1: FOOD SEARCH & DISCOVERY
+         ------------------------------------------------------------- -->
+    <section class="tab-panel active" id="tab-search">
+      <div class="search-hero">
+        <h2>Find the Nutritional Truth in Any Food</h2>
+        <p>Search over 90+ USDA verified reference foods & packaged items with laboratory-grade macronutrients, vitamins, and minerals.</p>
+
+        <div class="search-box-wrapper">
+          <div class="search-bar">
+            <span class="search-icon">
+              <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><path d="m21 21-4.35-4.35"></path></svg>
+            </span>
+            <input type="text" id="food-search-input" class="search-input" placeholder="Search food by name (e.g., Salmon, Avocado Toast, Quinoa, Greek Yogurt)..." autocomplete="off" />
+            <button class="search-clear-btn" id="food-search-clear" title="Clear search" aria-label="Clear">✕</button>
+          </div>
+
+          <!-- Live Autocomplete Dropdown -->
+          <div class="autocomplete-dropdown" id="search-autocomplete"></div>
+        </div>
+
+        <!-- Category Filter Chips -->
+        <div class="category-chips" id="category-chips-list">
+          <!-- Filled dynamically by search.js -->
+        </div>
+      </div>
+
+      <!-- Food Grid Section -->
+      <div class="foods-section-header">
+        <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main);">Verified Nutritional Profiles</h3>
+        <span class="foods-count-label" id="foods-count-label">Showing nutrient-dense foods</span>
+      </div>
+
+      <div class="foods-grid" id="foods-grid-container">
+        <!-- Rendered by search.js -->
+      </div>
+    </section>
+
+    <!-- -------------------------------------------------------------
+         TAB 2: AI FOOD VISION SCANNER
+         ------------------------------------------------------------- -->
+    <section class="tab-panel" id="tab-vision">
+      <div class="card" style="margin-bottom: 1.5rem; background: linear-gradient(135deg, #ecfdf5 0%, #ffffff 100%);">
+        <div class="card-title-bar">
+          <div class="card-title">
+            <span>📸</span> AI Food Vision & Portion Analyzer
+          </div>
+          <span class="badge badge-verified">Vision Engine Active</span>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.925rem; max-width: 720px;">
+          Upload a food image or choose a demo plate below. NutriFind AI detects ingredients, segments volume, and calculates nutritional estimates calibrated against standard USDA references.
+        </p>
+      </div>
+
+      <div class="vision-container">
+        <!-- Left: Upload Zone & Presets -->
+        <div>
+          <!-- Dropzone -->
+          <div class="dropzone-box" id="vision-dropzone">
+            <input type="file" id="vision-file-input" accept="image/*" style="display: none;" />
+            <div class="dropzone-icon">
+              <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+            </div>
+            <div class="dropzone-prompt">
+              <h3>Drop your food photo here</h3>
+              <p>Supports JPG, PNG, WEBP, or paste (Ctrl+V)</p>
+            </div>
+            <div class="upload-button-row">
+              <button class="btn btn-primary btn-sm" id="btn-browse-file">
+                📁 Browse Image
+              </button>
+              <button class="btn btn-secondary btn-sm" id="btn-capture-camera">
+                📷 Snap with Camera
+              </button>
+            </div>
+          </div>
+
+          <!-- Live Scan Preview with Beam Animation -->
+          <div id="vision-scan-preview" style="display: none;"></div>
+
+          <!-- Sample Presets Carousel -->
+          <div class="sample-presets-section">
+            <div class="presets-header">
+              <span>⚡</span> 1-Tap Sample Food Presets (Instant Demo)
+            </div>
+            <div class="presets-grid">
+              <div class="preset-card" data-preset-id="sample_avocado_toast">
+                <img class="preset-img-thumb" src="/static/images/samples/sample_avocado_toast.jpg" alt="Avocado Toast" />
+                <div class="preset-caption">
+                  <strong>Avocado Toast with Egg</strong>
+                  <span>~395 kcal • 14.5g P</span>
+                </div>
+              </div>
+
+              <div class="preset-card" data-preset-id="sample_salmon_bowl">
+                <img class="preset-img-thumb" src="/static/images/samples/sample_salmon_bowl.jpg" alt="Salmon Quinoa Bowl" />
+                <div class="preset-caption">
+                  <strong>Salmon Quinoa Bowl</strong>
+                  <span>~540 kcal • 43g P</span>
+                </div>
+              </div>
+
+              <div class="preset-card" data-preset-id="sample_berry_oatmeal">
+                <img class="preset-img-thumb" src="/static/images/samples/sample_berry_oatmeal.jpg" alt="Berry Oatmeal" />
+                <div class="preset-caption">
+                  <strong>Berry Oatmeal Bowl</strong>
+                  <span>~345 kcal • 11.2g Fiber</span>
+                </div>
+              </div>
+
+              <div class="preset-card" data-preset-id="sample_chicken_salad">
+                <img class="preset-img-thumb" src="/static/images/samples/sample_chicken_salad.jpg" alt="Chicken Salad" />
+                <div class="preset-caption">
+                  <strong>Mediterranean Salad</strong>
+                  <span>~430 kcal • 44g P</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Vision Analysis Results -->
+        <div>
+          <div class="card vision-results-card" id="vision-results" style="display: none;">
+            <div class="vision-header-badge-row">
+              <div>
+                <span class="badge badge-estimate" id="detected-food-confidence">95% Match</span>
+                <span class="badge badge-verified" id="detected-food-source">AI Visual Engine</span>
+              </div>
+              <span class="badge-score-A">Grade A</span>
+            </div>
+
+            <div>
+              <h3 class="vision-detected-title" id="detected-food-title">Avocado Toast with Poached Egg</h3>
+              <span style="font-size: 0.85rem; color: var(--text-muted);">Calibrated with USDA FoodData Reference values</span>
+            </div>
+
+            <!-- Disclaimer Notice -->
+            <div class="disclaimer-box">
+              <span>⚠️</span>
+              <span><strong>AI Visual Estimate:</strong> Portion size and nutrient breakdown are calculated from visual features and standard USDA reference density. Accuracy may vary based on exact cooking oils and seasonings.</span>
+            </div>
+
+            <!-- Detected Components List -->
+            <div>
+              <div style="font-size: 0.85rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.5rem;">
+                Detected Plate Components
+              </div>
+              <div class="ingredients-breakdown-list" id="detected-components-list"></div>
+            </div>
+
+            <!-- Interactive Portion Slider -->
+            <div class="portion-slider-card">
+              <div class="portion-slider-header">
+                <span>Refine Estimated Portion:</span>
+                <span class="portion-slider-value" id="portion-slider-value">220g</span>
+              </div>
+              <input type="range" class="slider-input" id="portion-slider" min="50" max="600" step="10" value="220" />
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; color: var(--text-muted); margin-top: 0.25rem;">
+                <span>Light Snack (50g)</span>
+                <span>Standard (250g)</span>
+                <span>Large Feast (600g)</span>
+              </div>
+            </div>
+
+            <!-- Live Estimated Nutrients Display -->
+            <div class="food-macro-row" style="background: white; border: 1px solid var(--border-color); padding: 0.75rem;">
+              <div class="macro-box">
+                <span class="macro-box-val calories" id="vision-cals-val" style="font-size: 1.25rem;">395</span>
+                <span class="macro-box-lbl">Calories</span>
+              </div>
+              <div class="macro-box">
+                <span class="macro-box-val protein" id="vision-prot-val" style="font-size: 1.25rem;">14.5g</span>
+                <span class="macro-box-lbl">Protein</span>
+              </div>
+              <div class="macro-box">
+                <span class="macro-box-val carbs" id="vision-carb-val" style="font-size: 1.25rem;">28.0g</span>
+                <span class="macro-box-lbl">Carbs</span>
+              </div>
+              <div class="macro-box">
+                <span class="macro-box-val fat" id="vision-fat-val" style="font-size: 1.25rem;">26.0g</span>
+                <span class="macro-box-lbl">Fats</span>
+              </div>
+            </div>
+
+            <!-- Micros Row -->
+            <div style="display: flex; justify-content: space-around; font-size: 0.8rem; color: var(--text-muted); background: #f8fafc; padding: 0.5rem; border-radius: var(--radius-sm);">
+              <div>Fiber: <strong id="vision-fiber-val" style="color: var(--macro-fiber);">9.2g</strong></div>
+              <div>Sugars: <strong id="vision-sugar-val" style="color: var(--text-main);">2.8g</strong></div>
+              <div>Sodium: <strong id="vision-sodium-val" style="color: var(--text-main);">380mg</strong></div>
+            </div>
+
+            <!-- Log to Meal Action -->
+            <div style="display: flex; gap: 0.5rem; align-items: center; margin-top: 0.5rem;">
+              <select id="vision-log-meal-type" class="form-control" style="width: 140px;">
+                <option value="breakfast">Breakfast</option>
+                <option value="lunch" selected>Lunch</option>
+                <option value="dinner">Dinner</option>
+                <option value="snack">Snack</option>
+              </select>
+              <button class="btn btn-primary" id="btn-vision-log-meal" style="flex: 1;">
+                + Log Meal to Daily Tracker
+              </button>
+            </div>
+          </div>
+
+          <!-- Placeholder when no result yet -->
+          <div class="card" id="vision-placeholder" style="text-align: center; padding: 3rem 1.5rem; color: var(--text-muted);">
+            <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🍽️</div>
+            <h4 style="font-size: 1.1rem; color: var(--text-main); margin-bottom: 0.25rem;">Awaiting Meal Photo</h4>
+            <p style="font-size: 0.875rem;">Upload an image or tap any sample preset on the left to test the AI detection pipeline.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- -------------------------------------------------------------
+         TAB 3: DAILY TRACKER & MEALS
+         ------------------------------------------------------------- -->
+    <section class="tab-panel" id="tab-tracker">
+      <div class="tracker-top-overview">
+        <!-- 1. Calorie Circular Progress Ring -->
+        <div class="card calorie-ring-card">
+          <div class="card-title-bar" style="width: 100%;">
+            <div class="card-title">Daily Calorie Target</div>
+            <span class="badge badge-verified">Target Goal</span>
+          </div>
+
+          <div class="ring-chart-wrapper">
+            <svg width="200" height="200" viewBox="0 0 200 200">
+              <!-- Background Ring -->
+              <circle cx="100" cy="100" r="75" stroke="#f1f5f9" stroke-width="14" fill="none" />
+              <!-- Animated Progress Circle -->
+              <circle id="calorie-svg-circle" cx="100" cy="100" r="75" stroke="#10b981" stroke-width="14" stroke-linecap="round" fill="none"
+                      stroke-dasharray="471.2" stroke-dashoffset="471.2"
+                      style="transform: rotate(-90deg); transform-origin: 50% 50%; transition: stroke-dashoffset 0.8s ease;" />
+            </svg>
+            <div class="ring-center-content">
+              <div class="ring-calorie-number" id="tracker-calorie-num">0</div>
+              <div class="ring-calorie-label">Calories Consumed</div>
+            </div>
+          </div>
+
+          <div class="ring-meta-row">
+            <div class="ring-meta-item">
+              <span>Target</span>
+              <strong id="tracker-target-display">2,000 kcal</strong>
+            </div>
+            <div class="ring-meta-item">
+              <span>Consumed</span>
+              <strong id="tracker-consumed-display">0 kcal</strong>
+            </div>
+            <div class="ring-meta-item">
+              <span>Balance</span>
+              <strong id="tracker-remaining-display">2,000 left</strong>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Macronutrients Progress Bars -->
+        <div class="card macro-bars-card">
+          <div class="card-title-bar">
+            <div class="card-title">Macronutrient Targets</div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Calibrated Split</span>
+          </div>
+
+          <!-- Protein -->
+          <div class="macro-bar-row">
+            <div class="macro-bar-label-group">
+              <span style="color: var(--macro-protein);">🥩 Protein (Goal: 120g)</span>
+              <span id="macro-val-protein">0g / 120g (0%)</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill protein" id="macro-fill-protein" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <!-- Carbs -->
+          <div class="macro-bar-row">
+            <div class="macro-bar-label-group">
+              <span style="color: var(--macro-carbs);">🌾 Carbohydrates (Goal: 225g)</span>
+              <span id="macro-val-carbs">0g / 225g (0%)</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill carbs" id="macro-fill-carbs" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <!-- Fats -->
+          <div class="macro-bar-row">
+            <div class="macro-bar-label-group">
+              <span style="color: var(--macro-fat);">🥑 Healthy Fats (Goal: 65g)</span>
+              <span id="macro-val-fat">0g / 65g (0%)</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill fat" id="macro-fill-fat" style="width: 0%;"></div>
+            </div>
+          </div>
+
+          <!-- Fiber -->
+          <div class="macro-bar-row">
+            <div class="macro-bar-label-group">
+              <span style="color: var(--macro-fiber);">🥗 Dietary Fiber (Standard: 28g)</span>
+              <span id="macro-val-fiber">0g / 28g (0%)</span>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill fiber" id="macro-fill-fiber" style="width: 0%;"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Water Intake Tracker -->
+        <div class="card water-tracker-card">
+          <div class="card-title-bar" style="width: 100%;">
+            <div class="card-title">Hydration</div>
+            <span class="badge" style="background: #e0f2fe; color: #0369a1;">35ml / kg</span>
+          </div>
+
+          <div class="water-amount-big" id="water-amount-big">1,250 / 2,500 ml</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.75rem;">Daily Water Goal</div>
+
+          <div class="water-glasses-row" id="water-glasses-row">
+            <!-- 8 glasses rendered dynamically -->
+          </div>
+
+          <div class="water-actions-row">
+            <button class="btn btn-secondary btn-sm" id="btn-water-sub" style="flex: 1;">- 250 ml</button>
+            <button class="btn btn-primary btn-sm" id="btn-water-add" style="flex: 1;">+ 250 ml 💧</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Personalized Nutrition Insights Banner -->
+      <div class="card" style="margin-bottom: 1.5rem; background: #ffffff;">
+        <div class="card-title-bar">
+          <div class="card-title">💡 Personalized Daily Nutrition Guidance</div>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">Real-Time Dietary Analysis</span>
+        </div>
+        <div id="tracker-insights-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.75rem;">
+          <!-- Dynamically populated -->
+        </div>
+      </div>
+
+      <!-- Meal History by Category -->
+      <div class="card-title-bar">
+        <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main);">Today's Meal Log</h3>
+        <button class="btn btn-primary btn-sm" onclick="NutriTracker.openCustomAddModal('snack')">
+          + Quick Add Custom Food
+        </button>
+      </div>
+
+      <div class="meal-categories-wrapper">
+        <!-- Breakfast -->
+        <div class="meal-block">
+          <div class="meal-block-header">
+            <div class="meal-block-title">
+              <span>🍳</span> Breakfast
+            </div>
+            <span class="meal-block-cals" id="meal-cals-breakfast">0 kcal</span>
+          </div>
+          <div class="meal-items-list" id="meal-list-breakfast"></div>
+        </div>
+
+        <!-- Lunch -->
+        <div class="meal-block">
+          <div class="meal-block-header">
+            <div class="meal-block-title">
+              <span>🥗</span> Lunch
+            </div>
+            <span class="meal-block-cals" id="meal-cals-lunch">0 kcal</span>
+          </div>
+          <div class="meal-items-list" id="meal-list-lunch"></div>
+        </div>
+
+        <!-- Dinner -->
+        <div class="meal-block">
+          <div class="meal-block-header">
+            <div class="meal-block-title">
+              <span>🍲</span> Dinner
+            </div>
+            <span class="meal-block-cals" id="meal-cals-dinner">0 kcal</span>
+          </div>
+          <div class="meal-items-list" id="meal-list-dinner"></div>
+        </div>
+
+        <!-- Snacks -->
+        <div class="meal-block">
+          <div class="meal-block-header">
+            <div class="meal-block-title">
+              <span>🍎</span> Snacks & Treats
+            </div>
+            <span class="meal-block-cals" id="meal-cals-snack">0 kcal</span>
+          </div>
+          <div class="meal-items-list" id="meal-list-snack"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- -------------------------------------------------------------
+         TAB 4: WEEKLY ANALYTICS & TRENDS
+         ------------------------------------------------------------- -->
+    <section class="tab-panel" id="tab-analytics">
+      <div class="card-title-bar" style="margin-bottom: 1.5rem;">
+        <div>
+          <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--primary-900);">7-Day Nutrition Trends & Compliance</h2>
+          <p style="font-size: 0.9rem; color: var(--text-muted);">Monitor your caloric stability, average macronutrients, and micronutrient sufficiency.</p>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <button class="btn btn-secondary btn-sm" id="btn-export-csv">
+            📄 Export CSV
+          </button>
+          <button class="btn btn-secondary btn-sm" id="btn-export-json">
+            💾 Export JSON
+          </button>
+        </div>
+      </div>
+
+      <div class="analytics-grid">
+        <!-- 7-Day Bar Chart -->
+        <div class="card">
+          <div class="card-title-bar">
+            <div class="card-title">Past 7 Days Intake vs Target</div>
+            <span class="badge badge-verified">Target Line: 2,000 kcal</span>
+          </div>
+
+          <div class="weekly-bar-chart-container" id="weekly-chart-bars">
+            <!-- Rendered by analytics.js -->
+          </div>
+        </div>
+
+        <!-- 7-Day Averages & Quality -->
+        <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+          <div>
+            <div class="card-title-bar">
+              <div class="card-title">7-Day Averages</div>
+              <span class="badge-score-A">Score A</span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+              <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <span style="color: var(--text-muted); font-size: 0.9rem;">Avg Calories</span>
+                <strong id="stat-avg-cals" style="font-size: 1.05rem;">—</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <span style="color: var(--macro-protein); font-size: 0.9rem;">Avg Protein</span>
+                <strong id="stat-avg-prot" style="font-size: 1.05rem;">—</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <span style="color: var(--macro-carbs); font-size: 0.9rem;">Avg Carbs</span>
+                <strong id="stat-avg-carbs" style="font-size: 1.05rem;">—</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; border-bottom: 1px solid #f1f5f9; padding-bottom: 0.5rem;">
+                <span style="color: var(--macro-fat); font-size: 0.9rem;">Avg Fats</span>
+                <strong id="stat-avg-fat" style="font-size: 1.05rem;">—</strong>
+              </div>
+            </div>
+          </div>
+
+          <div style="padding: 1rem; background: var(--primary-50); border-radius: var(--radius-md); margin-top: 1.5rem; text-align: center;">
+            <div style="font-size: 0.8rem; color: var(--primary-800); font-weight: 600;" id="stat-logged-days">Consistency Score: 100%</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Micronutrient Sufficiency Checklist -->
+      <div class="card" style="margin-top: 1.5rem;">
+        <div class="card-title-bar">
+          <div class="card-title">Essential Micronutrients & Electrolyte Standard</div>
+          <span style="font-size: 0.8rem; color: var(--text-muted);">FDA Daily Value Reference Benchmarks</span>
+        </div>
+        <div class="micronutrient-checklist" id="micro-compliance-list">
+          <!-- Populated by analytics.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- -------------------------------------------------------------
+         TAB 5: PROFILE & GOALS
+         ------------------------------------------------------------- -->
+    <section class="tab-panel" id="tab-profile">
+      <div class="card">
+        <div class="card-title-bar">
+          <div class="card-title">
+            <span>🎯</span> Personalized Nutrition & TDEE Target Calculator
+          </div>
+          <span class="badge badge-verified">Mifflin-St Jeor Validated</span>
+        </div>
+        <p style="color: var(--text-muted); font-size: 0.9rem; margin-bottom: 1.5rem;">
+          NutriFind uses the peer-reviewed Mifflin-St Jeor formula to determine your Basal Metabolic Rate (BMR) and Total Daily Energy Expenditure (TDEE). Adjust your parameters to dynamically recalculate your target calories and macronutrient ratios.
+        </p>
+
+        <form id="profile-form">
+          <div class="profile-form-grid">
+            <div class="form-group">
+              <label class="form-label" for="prof-name">Full Name</label>
+              <input type="text" id="prof-name" class="form-control" value="Alex Morgan" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="prof-gender">Biological Sex</label>
+              <select id="prof-gender" class="form-control">
+                <option value="female">Female</option>
+                <option value="male">Male</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="prof-age">Age (Years)</label>
+              <input type="number" id="prof-age" class="form-control" value="28" min="15" max="100" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="prof-weight">Weight (kg)</label>
+              <input type="number" id="prof-weight" class="form-control" value="65" step="0.5" min="30" max="250" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="prof-height">Height (cm)</label>
+              <input type="number" id="prof-height" class="form-control" value="168" min="100" max="250" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="prof-activity">Activity Level</label>
+              <select id="prof-activity" class="form-control">
+                <option value="sedentary">Sedentary (Desk job, little exercise)</option>
+                <option value="light">Lightly Active (1-3 days exercise/week)</option>
+                <option value="moderate" selected>Moderately Active (3-5 days workout)</option>
+                <option value="very_active">Very Active (6-7 days intense sport)</option>
+                <option value="athlete">Extra Active (2x training/day or physical job)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="prof-goal">Primary Fitness Goal</label>
+              <select id="prof-goal" class="form-control">
+                <option value="lose">Fat Loss & Leaning Out (-450 kcal deficit)</option>
+                <option value="maintain" selected>Weight Maintenance & Health Balance</option>
+                <option value="gain">Lean Muscle Gain (+400 kcal surplus)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="prof-diet">Dietary Macro Strategy</label>
+              <select id="prof-diet" class="form-control">
+                <option value="balanced" selected>Balanced (25% P / 50% C / 25% F)</option>
+                <option value="high_protein">High Protein Athletic (35% P / 40% C / 25% F)</option>
+                <option value="low_carb">Low Carbohydrate (35% P / 20% C / 45% F)</option>
+                <option value="keto">Ketogenic (25% P / 5% C / 70% F)</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Live Calculator Display Banner -->
+          <div class="calc-results-banner">
+            <div class="calc-stat-box">
+              <h4>Basal Metabolic Rate</h4>
+              <p id="calc-stat-bmr">1,402 kcal</p>
+            </div>
+            <div class="calc-stat-box">
+              <h4>Daily Energy (TDEE)</h4>
+              <p id="calc-stat-tdee">2,173 kcal</p>
+            </div>
+            <div class="calc-stat-box">
+              <h4>Prescribed Calorie Target</h4>
+              <p id="calc-stat-target" style="color: var(--primary-300);">2,000 kcal</p>
+            </div>
+            <div class="calc-stat-box">
+              <h4>Target Macro Split</h4>
+              <p id="calc-stat-macros" style="font-size: 1.15rem; font-weight: 700; margin-top: 0.5rem;">P: 125g • C: 250g • F: 56g</p>
+            </div>
+          </div>
+
+          <div style="margin-top: 1.5rem; display: flex; justify-content: flex-end;">
+            <button type="submit" class="btn btn-primary">
+              💾 Save Profile & Update Targets
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ================= MODALS ================= -->
+
+  <!-- 1. FDA Nutrition Facts Modal -->
+  <div class="modal-backdrop" id="nutrition-modal">
+    <div class="modal-card">
+      <button class="modal-close-btn" id="btn-close-nutrition-modal" aria-label="Close">✕</button>
+
+      <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.5rem; padding-right: 2rem;">
+        <h3 id="modal-food-name" style="font-size: 1.25rem; font-weight: 800; color: var(--text-main);">Food Details</h3>
+        <span class="badge badge-verified" id="modal-food-badge">USDA Verified</span>
+      </div>
+
+      <!-- Serving Adjuster Controls -->
+      <div class="serving-adjuster-bar">
+        <label>Adjust Portion:</label>
+        <button class="btn btn-secondary btn-sm" id="btn-serving-sub" style="width: 28px; height: 28px; padding: 0;">-</button>
+        <span id="serving-multiplier-display" style="font-weight: 700; color: var(--primary-700); min-width: 90px; text-align: center;">1.0x (100g)</span>
+        <button class="btn btn-secondary btn-sm" id="btn-serving-add" style="width: 28px; height: 28px; padding: 0;">+</button>
+      </div>
+
+      <!-- FDA Nutrition Facts Label View -->
+      <div id="fda-nutrition-panel">
+        <!-- Rendered by search.js -->
+      </div>
+
+      <div style="margin-top: 1rem; display: flex; gap: 0.75rem;">
+        <button class="btn btn-primary" id="btn-modal-add-log" style="flex: 1;">
+          + Log to Today's Meals
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Log Meal Dialog -->
+  <div class="modal-backdrop" id="log-meal-modal">
+    <div class="modal-card" style="max-width: 440px;">
+      <button class="modal-close-btn" id="btn-close-log-modal" aria-label="Close">✕</button>
+
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 0.25rem;">Log Food to Meal</h3>
+      <p id="log-display-food-name" style="color: var(--primary-700); font-weight: 600; margin-bottom: 1.25rem;">Food Name</p>
+
+      <form id="form-log-meal">
+        <input type="hidden" id="log-food-id" />
+        <input type="hidden" id="log-food-name" />
+        <input type="hidden" id="log-servings" value="1.0" />
+        <input type="hidden" id="log-calories" />
+        <input type="hidden" id="log-protein" />
+        <input type="hidden" id="log-carbs" />
+        <input type="hidden" id="log-fat" />
+        <input type="hidden" id="log-fiber" />
+        <input type="hidden" id="log-sugar" />
+        <input type="hidden" id="log-sodium" />
+
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" for="log-meal-type">Select Meal</label>
+          <select id="log-meal-type" class="form-control">
+            <option value="breakfast">🍳 Breakfast</option>
+            <option value="lunch" selected>🥗 Lunch</option>
+            <option value="dinner">🍲 Dinner</option>
+            <option value="snack">🍎 Snack / Treat</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.5rem;">
+          <label class="form-label" for="log-grams">Weight Consumed (grams)</label>
+          <input type="number" id="log-grams" class="form-control" value="100" min="1" max="2000" />
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%;">
+          ✓ Confirm & Add to Tracker
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 3. Custom Quick Food Modal -->
+  <div class="modal-backdrop" id="custom-food-modal">
+    <div class="modal-card" style="max-width: 440px;">
+      <button class="modal-close-btn" id="btn-close-custom-modal" aria-label="Close">✕</button>
+
+      <h3 style="font-size: 1.25rem; font-weight: 700; margin-bottom: 1rem;">Quick Add Custom Food</h3>
+
+      <form id="form-custom-food">
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label class="form-label" for="custom-meal-type">Meal Category</label>
+          <select id="custom-meal-type" class="form-control">
+            <option value="breakfast">Breakfast</option>
+            <option value="lunch">Lunch</option>
+            <option value="dinner">Dinner</option>
+            <option value="snack" selected>Snack</option>
+          </select>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 0.75rem;">
+          <label class="form-label" for="custom-food-name">Food or Recipe Name</label>
+          <input type="text" id="custom-food-name" class="form-control" placeholder="e.g., Homemade Green Smoothie" required />
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin-bottom: 0.75rem;">
+          <div class="form-group">
+            <label class="form-label" for="custom-food-grams">Weight (g)</label>
+            <input type="number" id="custom-food-grams" class="form-control" value="250" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="custom-food-cals">Calories (kcal)</label>
+            <input type="number" id="custom-food-cals" class="form-control" value="180" required />
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1.25rem;">
+          <div class="form-group">
+            <label class="form-label" for="custom-food-prot">Protein (g)</label>
+            <input type="number" id="custom-food-prot" class="form-control" value="10" step="0.5" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="custom-food-carbs">Carbs (g)</label>
+            <input type="number" id="custom-food-carbs" class="form-control" value="25" step="0.5" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="custom-food-fat">Fat (g)</label>
+            <input type="number" id="custom-food-fat" class="form-control" value="4" step="0.5" />
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%;">
+          + Log Custom Item
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- 4. Camera Live Stream Modal -->
+  <div class="modal-backdrop" id="camera-modal">
+    <div class="modal-card" style="max-width: 500px; text-align: center;">
+      <button class="modal-close-btn" id="btn-close-camera" aria-label="Close">✕</button>
+      <h3 style="margin-bottom: 1rem; font-weight: 700;">Camera Food Scanner</h3>
+      <video id="camera-stream" autoplay playsinline style="width: 100%; height: 320px; object-fit: cover; border-radius: var(--radius-md); background: #000; margin-bottom: 1rem;"></video>
+      <button class="btn btn-primary" id="btn-take-snapshot" style="width: 100%;">
+        📸 Capture & Analyze Plate
+      </button>
+    </div>
+  </div>
+
+  <!-- 5. Settings Modal -->
+  <div class="modal-backdrop" id="settings-modal">
+    <div class="modal-card" style="max-width: 480px;">
+      <button class="modal-close-btn" id="btn-close-settings" aria-label="Close">✕</button>
+
+      <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+        <span style="font-size: 1.4rem;">⚙️</span>
+        <h3 style="font-size: 1.25rem; font-weight: 700;">System Settings & API Keys</h3>
+      </div>
+      <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.25rem;">
+        NutriFind operates out of the box in <strong>Demo & Verified Mode</strong> using curated USDA reference datasets and built-in vision signatures. If you wish to enable live Gemini Flash Vision analysis, configure your key below.
+      </p>
+
+      <form id="settings-form">
+        <div class="form-group" style="margin-bottom: 1rem;">
+          <label class="form-label" for="input-gemini-key">Google Gemini API Key (Optional)</label>
+          <input type="password" id="input-gemini-key" class="form-control" placeholder="AIzaSy..." />
+          <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Used for live multimodal vision extraction on arbitrary user photos.</span>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 1.25rem;">
+          <label class="form-label" for="input-usda-key">USDA FoodData Central API Key (Optional)</label>
+          <input type="password" id="input-usda-key" class="form-control" placeholder="DEMO_KEY" />
+          <span style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">For live live-querying USDA REST servers.</span>
+        </div>
+
+        <div style="padding: 0.75rem; background: var(--primary-50); border: 1px solid var(--primary-200); border-radius: var(--radius-md); font-size: 0.8rem; color: var(--primary-900); margin-bottom: 1.25rem;">
+          ✓ <strong>Offline Demo Mode Active:</strong> Sample food presets, calibrated portion slider, FDA label synthesis, and USDA standard reference values work completely without external keys.
+        </div>
+
+        <button type="submit" class="btn btn-primary" style="width: 100%;">
+          Save Configuration
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div class="toast-container" id="toast-container"></div>
+
+  <!-- ================= APP FOOTER ================= -->
+  <footer class="app-footer">
+    <div><strong>NutriFind AI</strong> — Smart Food Discovery, Visual AI Estimation & Nutrient Tracking System</div>
+    <div class="footer-links">
+      <a href="#" onclick="NutriFind.switchTab('search')">Food Directory</a>
+      <a href="#" onclick="NutriFind.switchTab('vision')">AI Food Vision</a>
+      <a href="#" onclick="NutriFind.switchTab('tracker')">Daily Log</a>
+      <a href="#" onclick="NutriFind.switchTab('analytics')">7-Day Trends</a>
+      <a href="#" onclick="NutriFind.switchTab('profile')">TDEE Calculator</a>
+    </div>
+    <div style="font-size: 0.75rem; color: var(--text-light); margin-top: 0.5rem;">
+      Nutritional data compiled from USDA FoodData Central & Open Food Facts. Estimates are clearly marked. Not intended as medical advice.
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="/static/js/app.js"></script>
+  <script src="/static/js/search.js"></script>
+  <script src="/static/js/vision.js"></script>
+  <script src="/static/js/tracker.js"></script>
+  <script src="/static/js/analytics.js"></script>
+  <script src="/static/js/profile.js"></script>
+</body>
+</html>
